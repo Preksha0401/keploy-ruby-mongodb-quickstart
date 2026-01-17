@@ -1,117 +1,126 @@
 # Keploy Ruby + MongoDB Quickstart
 
-A simple CRUD Todo API built using Ruby (Sinatra) and MongoDB, integrated with Keploy for API testing using record and replay. Keploy automatically captures your real API calls (no code changes needed) and replays them to verify behavior - perfect for beginners who want powerful testing without writing test cases manually.
+A simple CRUD Todo app built with Ruby using Sinatra and MongoDB. I've hooked it up with Keploy so you can record real API calls and replay them as tests - no need to write test cases by hand.
 
-This quickstart is created for Keploy GitHub Issue #3521 - adding Ruby support.
+This whole thing was made to help with Keploy GitHub issue #3521 (adding proper Ruby support).
 
 ---
 
 ## Features
 
-- Full CRUD Todo REST API
-- Ruby + Sinatra backend
-- MongoDB as database
-- Local setup (no Docker)
-- Docker Compose (app + MongoDB)
-- Keploy record and replay working end-to-end
-- Noise filter for dynamic MongoDB `_id` fields
-- Super beginner-friendly step-by-step guide
-- Screenshots for every important step
+- Full create, read, update, delete operations for todos
+- Ruby with Sinatra for the backend
+- MongoDB to store the data
+- Works locally without containers
+- Also runs with Docker Compose (app + MongoDB together)
+- Keploy records and replays everything end-to-end
+- Handles noisy dynamic fields like MongoDB's _id using filters
+- Really beginner-friendly with clear steps and screenshots
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint | Description | Example Request Body (if any) |
-|----------|------------------|--------------------------------------------------|-----------------------------------------------|
-| GET | `/health` | Check if server is alive | - |
-| POST | `/todos` | Create a new todo | `{"title": "Buy groceries"}` |
-| GET | `/todos` | Get list of all todos | - |
-| GET | `/todos/:id` | Get single todo by ID | - |
-| PUT | `/todos/:id` | Update todo title or done status | `{"title": "New title", "done": true}` |
-| DELETE | `/todos/:id` | Delete a todo by ID | - |
+| Method | Endpoint | What it does | Example body (if needed) |
+|------|---------|-------------|--------------------------|
+| GET | `/health` | Checks if server is running | - |
+| POST | `/todos` | Creates a new todo | `{"title": "Buy milk"}` |
+| GET | `/todos` | Gets all todos | - |
+| GET | `/todos/:id` | Gets one todo by id | - |
+| PUT | `/todos/:id` | Updates a todo | `{"title": "New title", "done": true}` |
+| DELETE | `/todos/:id` | Deletes a todo | - |
 
-All responses are in JSON format.
+Everything returns JSON.
 
 ---
 
 ## Tech Stack
 
-- **Ruby** 3.2+
-- **Sinatra** (lightweight web framework)
-- **MongoDB** (NoSQL database)
-- **Docker & Docker Compose** (containerization)
-- **Keploy** v3.2.2 (API testing tool)
-- **Puma** (web server used by Sinatra)
+- Ruby 3.2 or newer
+- Sinatra (super lightweight framework)
+- MongoDB
+- Docker and Docker Compose
+- Keploy v3.2.2
+- Puma server (comes with Sinatra)
 
 ---
 
-## 1. Local Setup (Without Docker) - Super Easy for Beginners
+## 1. Running Locally (No Docker - Great for Beginners)
 
-### Prerequisites
+### What you need first
 
-- Ubuntu / WSL on Windows (Keploy needs Linux kernel)
-- Ruby installed (`ruby -v` should show 3.2+)
+- Ubuntu or WSL on Windows (Keploy only works on Linux kernel)
+- Ruby 3.2+ installed (check with `ruby -v`)
 - MongoDB installed and running
-- Git installed
+- Git
 
-### Step-by-step
+### Steps
 
-**1. Start MongoDB** (most important!)
+**Start MongoDB (this is the most important part)**
 
 ```bash
 sudo systemctl start mongod
-sudo systemctl enable mongod # auto-start on boot
-sudo systemctl status mongod # should say "active (running)"
+sudo systemctl enable mongod    # makes it start automatically on boot
+sudo systemctl status mongod    # should show "active (running)" in green
 ```
 
-If not installed yet:
+If MongoDB isn't installed yet:
 
 ```bash
+sudo apt update
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org-8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 sudo apt update
 sudo apt install -y mongodb-org
 ```
 
-**2. Install Ruby dependencies**
+**Install Ruby gems**
 
 ```bash
 bundle install
 ```
 
-**3. Run the application**
+**Start the app**
 
 ```bash
 bundle exec ruby app.rb
 ```
 
-You will see:
+You should see something like:
 
 ```
-== Sinatra (v4.2.1) has taken the stage on 4567
-...
+== Sinatra (v4.2.1) has taken the stage on 4567 ...
 Puma starting in single mode...
 * Listening on http://0.0.0.0:4567
 ```
 
-**4. Test it works**
-
-Open new terminal:
+**Test it (open a new terminal, don't stop the app)**
 
 ```bash
 curl http://localhost:4567/health
 ```
 
-Expected:
+You should get:
 
 ```json
 {"status":"ok"}
 ```
 
-If you get error, check Mongo is running, app is not crashed, port 4567 free.
+If not, check MongoDB status, look at app logs for errors, or free port 4567 with:
+
+```bash
+sudo fuser -k 4567/tcp
+```
 
 ---
 
-## 2. Docker Compose Setup (App + MongoDB in Containers)
+## 2. Running with Docker Compose (App + MongoDB in containers)
+
+### What you need
+
+Docker Desktop running (on Windows make sure WSL is enabled in Docker settings)
+
+### Steps
 
 **Build and start everything**
 
@@ -119,22 +128,24 @@ If you get error, check Mongo is running, app is not crashed, port 4567 free.
 docker compose up --build
 ```
 
-Wait 30-60 seconds. Look for:
+Wait a bit. Look for:
 
-- MongoDB: "waiting for connections on port 27017"
-- Ruby app: "Listening on http://0.0.0.0:4567"
+- MongoDB saying "waiting for connections on port 27017"
+- App saying "Listening on http://0.0.0.0:4567"
 
-**Test from host**
-
-New terminal:
+**Test it (new terminal)**
 
 ```bash
-curl http://localhost:4567/health # should return {"status":"ok"}
+curl http://localhost:4567/health
 ```
 
-**Stop containers**
+Should return:
 
-Ctrl + C in the docker terminal OR run in another terminal:
+```json
+{"status":"ok"}
+```
+
+To stop: Ctrl+C or in another terminal:
 
 ```bash
 docker compose down
@@ -142,29 +153,25 @@ docker compose down
 
 ---
 
-## 3. Install Keploy (Only on Linux/WSL)
+## 3. Installing Keploy
 
-Keploy uses eBPF - works only on Linux kernel (not native Windows/Mac).
-
-Run:
+Keploy only works on Linux/WSL because of eBPF.
 
 ```bash
 curl --silent -O -L https://keploy.io/install.sh && source install.sh
 ```
 
-Check:
+Check it worked:
 
 ```bash
-keploy version # Should show v3.2.2 or similar
+keploy version
 ```
 
-If fails, search error + "Keploy install Ubuntu" or ask in chat.
+Should show v3.2.2 or similar.
 
 ---
 
-## 4. Keploy Record Mode - Capture Real Traffic
-
-Start recording:
+## 4. Recording Tests with Keploy
 
 ```bash
 keploy record -c "docker compose up --build" \
@@ -172,47 +179,39 @@ keploy record -c "docker compose up --build" \
   --buildDelay 45
 ```
 
-What happens:
+Keploy will start the containers and wait for the app to be ready.
 
-- Keploy starts its agent
-- Runs your Docker Compose automatically
-- Waits for app to start (you'll see Puma logs)
-
-**In a second terminal (very important):**
-
-Generate traffic (do 5-10 requests):
+In a second terminal, make some requests:
 
 ```bash
 curl http://localhost:4567/health
 
 curl -X POST http://localhost:4567/todos \
   -H "Content-Type: application/json" \
-  -d '{"title":"Learn Keploy with MongoDB"}'
+  -d '{"title":"Learn Keploy with Ruby"}'
 
 curl http://localhost:4567/todos
-
-# Repeat POST and GET a few times
 ```
 
-**Stop recording:**
+Do a few more POSTs, GETs, etc. to get good coverage.
 
-Go back to Keploy terminal and press Ctrl + C
+Go back to the Keploy terminal and press Ctrl+C to stop recording.
 
-**Success check:**
+**Check that tests were saved**
 
 ```bash
-ls keploy/ # Should show test-set-0/ or similar + .yaml files
+ls keploy/
+ls keploy/test-set-0/
 ```
 
-![Keploy Record Output](assets/record.png)
+You should see some yaml files.
 
-![Keploy Generated Folder](assets/folder.png)
+<img width="1115" height="153" alt="image" src="https://github.com/user-attachments/assets/fe8119a1-5498-41e6-8ae4-7e396c2bda96" />
+
 
 ---
 
-## 5. Keploy Replay / Test Mode - Verify Everything
-
-Run tests:
+## 5. Running Tests (Replay Mode)
 
 ```bash
 keploy test -c "docker compose up" \
@@ -220,30 +219,22 @@ keploy test -c "docker compose up" \
   --delay 15 \
   --buildDelay 45
 ```
+<img width="1716" height="772" alt="image" src="https://github.com/user-attachments/assets/b40777c8-69f4-44dc-8d7b-89754774bd42" />
+<img width="1573" height="972" alt="image" src="https://github.com/user-attachments/assets/5f2dace6-9c82-48c7-8056-511859129e28" />
 
-What you will see:
+First time you'll probably see around 14 tests, 10 pass, 4 fail because MongoDB creates new _id values each time.
 
-- Docker starts again
-- Keploy replays your captured requests
-- Compares responses (status, headers, body)
-
-Your results (first run):
-
-- Total tests: 14
-- Passed: 10
-- Failed: 4 (due to dynamic MongoDB _id fields - normal!)
-
-![Keploy Replay Output](assets/test-output.png)
+That's totally normal.
 
 ---
 
-## 6. Fixing Failed Tests (Dynamic MongoDB IDs)
+## 6. Fixing the Failing Tests (Handling Dynamic IDs)
 
-MongoDB creates new unique `_id` every time you insert. So replay gets different ID and fails.
+MongoDB generates fresh _id fields every run, so the replay sees different values.
 
-**Solution: Noise Filter in keploy.yml**
+I've added a keploy.yml file that tells Keploy to ignore those changing parts.
 
-We already added this file:
+Here's what's in keploy.yml:
 
 ```yaml
 version: api.keploy.io/v1beta1
@@ -265,53 +256,41 @@ noise:
       - body.id
 ```
 
-This tells Keploy: "Don't compare the id fields - they change every run!"
-
-Re-run test after adding this and expect near 100% pass.
-
-![Keploy Replay Output (After Noise Filter)](assets/test-final.png)
+Run the test command again - now almost everything should pass.
+<img width="1920" height="840" alt="image" src="https://github.com/user-attachments/assets/3de86856-3370-4d65-8887-6416627ed253" />
 
 ---
 
-## Project Structure (Explained for Beginners)
+## Project Structure
 
 ```
 .
-├── app.rb                 # All API logic + MongoDB connection
-├── Gemfile                # Ruby gems list
-├── config.ru              # Tells Puma how to run Sinatra
-├── Dockerfile             # Builds Ruby app container
-├── docker-compose.yml     # Runs app + MongoDB together
-├── keploy.yml             # Ignores dynamic IDs in tests
-├── README.md              # This file - you're reading it!
-├── assets/                # Put your screenshots here
-│   ├── record.png         # Keploy record terminal screenshot
-│   ├── folder.png         # ls keploy/ output screenshot
-│   └── test-final.png     # Keploy test/replay result screenshot
-└── keploy/                # Auto-created by Keploy
-    └── test-set-0/        # Contains .yaml files for each test case
+├── app.rb               # main API code and MongoDB connection
+├── Gemfile              # list of Ruby dependencies
+├── Gemfile.lock
+├── config.ru            # tells Puma how to run the app
+├── Dockerfile
+├── docker-compose.yml   # runs app and mongo together
+├── keploy.yml           # noise config to ignore changing IDs
+├── README.md            # this file
+├── assets/              # screenshots go here
+│   ├── record.png
+│   ├── folder.png
+│   └── test-final.png
+└── keploy/              # created automatically by Keploy
+    └── test-set-0/      # yaml test files
 ```
 
-**How to take screenshots:**
+---
 
-- Ubuntu: Press PrtSc, select area, save in assets/
-- Windows: Snipping Tool (Win + Shift + S), save as PNG
+## Summary
+
+You now have a working Ruby + Sinatra + MongoDB todo app that runs both locally and in Docker. Keploy can record real API traffic and replay it as tests, and we've handled the tricky dynamic MongoDB IDs with a simple noise filter.
+
+Everything is documented with clear steps and screenshots - perfect for anyone starting out.
 
 ---
 
-## Summary for Beginners
-
-✅ Built CRUD Todo API with Ruby + Sinatra + MongoDB  
-✅ Ran it locally and in Docker  
-✅ Installed Keploy  
-✅ Recorded 14 real API calls  
-✅ Replayed them - 10/14 passed (fixed dynamic IDs with noise filter)  
-✅ Documented everything step-by-step
-
-You now have a complete, production-like quickstart ready to share!
-
----
-
-Made with ❤️ by Preksha in Mumbai  
-Tested on WSL + Ubuntu + Docker + Keploy v3.2.2  
-For Keploy Issue #3521
+Created by Preksha  
+Tested on WSL, Ubuntu, Docker, and Keploy v3.2.2  
+Created for Keploy GitHub Issue #3521
