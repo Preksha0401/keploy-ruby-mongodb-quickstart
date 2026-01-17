@@ -1,6 +1,7 @@
 # Keploy Ruby + MongoDB Quickstart
 
 A simple CRUD Todo app built with Ruby using Sinatra and MongoDB. It is integrated with **Keploy** to record real API calls and replay them as tests — no need to write test cases manually.
+
 ---
 
 ## Features
@@ -291,5 +292,6 @@ Everything is documented with clear steps and screenshots - perfect for anyone s
 Created by Preksha  
 Tested on WSL, Ubuntu, Docker, and Keploy v3.2.2  
 Created for Keploy GitHub Issue #3521
+
 
 
