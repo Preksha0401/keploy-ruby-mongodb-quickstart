@@ -1,0 +1,20 @@
+version: api.keploy.io/v1beta1
+kind: Config
+metadata:
+  name: keploy-ruby-mongodb
+
+noise:
+  - path: "/todos"
+    method: "POST"
+    ignore:
+      - body.id
+
+  - path: "/todos"
+    method: "GET"
+    ignore:
+      - body.todos[*].id
+
+  - path: "/todos/*"
+    method: "GET"
+    ignore:
+      - body.id
